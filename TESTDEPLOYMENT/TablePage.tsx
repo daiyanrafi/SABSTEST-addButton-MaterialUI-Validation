@@ -15,70 +15,47 @@ import {
     TableContainer,
     TableHead,
     TableRow,
+    FormHelperText,
 } from '@mui/material';
 
 interface UserData {
     id: number;
-    name: string;
-    university: string;
+    title: string;
+    description: string;
     status: string;
+    createdDate: Date; 
 }
 
-const generateUniqueId = () => Math.floor(Math.random() * 1000);
 
 const ColumnPage: React.FC = () => {
     const [data, setData] = React.useState<UserData[]>([]);
     const [input, setInput] = React.useState({
-        name: '',
-        university: '',
-        status: 'current',
+        title: '',
+        description: '',
+        status: '',
     });
 
-    // const [isFormValid, setFormValid] = React.useState(false);
-    const [errorMessage, setErrorMessage] = React.useState(''); ///////////////////////////////////////////
+    const [errorMessage, setErrorMessage] = React.useState<string>('');
 
-    // const updateFormValidation = () => {
-    //     const isValid = input.name.trim() !== '' && input.university.trim() !== '';
-    //     if (!isValid) {
-    //         setErrorMessage('Name and University are required fields.');
-    //     } else {
-    //         setErrorMessage('');
-    //     }
-    //     setFormValid(isValid);
-    // };
+    const generateUniqueId = () => {
+        const newId = data.length > 0 ? data[data.length - 1].id + 1 : 1;
+        return newId;
+    };
 
-    // const handleInputChange = (key: string, value: string) => {
-    //     setInput((prevInput) => ({ ...prevInput, [key]: value }));
-    // };
     const handleInputChange = (key: string, value: string) => {
         setInput((prevInput) => ({ ...prevInput, [key]: value }));
         setErrorMessage('');
     };
 
-    // const handleAddClick = () => {
-    //     const newId = generateUniqueId();
-    //     const newData: UserData = { id: newId, ...input };
-    //     setData((prevData) => [...prevData, newData]);
-    //     setInput({ name: '', university: '', status: 'current' });
-    // };
-
-    // const handleAddClick = () => {
-    //     if (isFormValid) {
-    //         const newId = generateUniqueId();
-    //         const newData: UserData = { id: newId, ...input };
-    //         setData((prevData) => [...prevData, newData]);
-    //         setInput({ name: '', university: '', status: 'current' });
-    //     }
-    // };
-
     const handleAddClick = () => {
-        if (input.name.trim() === '' || input.university.trim() === '') {
+        if (input.title.trim() === '' || input.description.trim() === '' || input.status.trim() === '') {
             setErrorMessage('Required fields.');
         } else {
             const newId = generateUniqueId();
-            const newData: UserData = { id: newId, ...input };
+            const newDate = new Date();
+            const newData: UserData = { id: newId, createdDate: newDate, ...input };
             setData((prevData) => [...prevData, newData]);
-            setInput({ name: '', university: '', status: 'current' });
+            setInput({ title: '', description: '', status: '' });
         }
     };
 
@@ -99,11 +76,6 @@ const ColumnPage: React.FC = () => {
         }
     };
 
-    // React.useEffect(() => {
-    //     Update form validation whenever input changes
-    //     updateFormValidation();
-    // }, [input]);
-
     return (
         <Grid container justifyContent="center" alignItems="flex-start" style={{ height: '100vh', marginTop: '40px' }}>
             <Grid item xs={8}>
@@ -111,26 +83,27 @@ const ColumnPage: React.FC = () => {
                     <Grid container spacing={2}>
                         <Grid item xs={3}>
                             <TextField
-                                label="Name"
+                                label="Title"
                                 fullWidth
-                                value={input.name}
-                                onChange={(e) => handleInputChange('name', e.target.value)}
-                                error={!!(errorMessage && input.name.trim() === '')}
-                                helperText={errorMessage && input.name.trim() === '' && errorMessage}
+                                value={input.title}
+                                onChange={(e) => handleInputChange('title', e.target.value)}
+                                error={!!(errorMessage && input.title.trim() === '')}
+                                helperText={errorMessage && input.title.trim() === '' && errorMessage}
                             />
                         </Grid>
                         <Grid item xs={3}>
                             <TextField
-                                label="University"
+                                label="Description"
                                 fullWidth
-                                value={input.university}
-                                onChange={(e) => handleInputChange('university', e.target.value)}
-                                error={!!(errorMessage && input.university.trim() === '')}
-                                helperText={errorMessage && input.university.trim() === '' && errorMessage}
+                                value={input.description}
+                                onChange={(e) => handleInputChange('description', e.target.value)}
+                                error={!!(errorMessage && input.description.trim() === '')}
+                                helperText={errorMessage && input.description.trim() === '' && errorMessage}
                             />
                         </Grid>
+
                         <Grid item xs={3}>
-                            <FormControl fullWidth>
+                            <FormControl fullWidth error={!!(errorMessage && input.status.trim() === '')}>
                                 <InputLabel>Status</InputLabel>
                                 <Select
                                     value={input.status}
@@ -140,15 +113,16 @@ const ColumnPage: React.FC = () => {
                                     <MenuItem value="passed">Passed</MenuItem>
                                     <MenuItem value="hold-on">Hold-on</MenuItem>
                                 </Select>
+                                {errorMessage && input.status.trim() === '' && (
+                                    <FormHelperText>{errorMessage}</FormHelperText>
+                                )}
                             </FormControl>
                         </Grid>
+
                         <Grid item xs={3}>
                             <Button variant="contained" color="primary" onClick={handleAddClick}>
                                 Add
                             </Button>
-                            {/* {errorMessage && !input.name.trim() && !input.university.trim() && (
-                                <div style={{ color: 'red' }}>{errorMessage}</div>
-                            )} */}
                         </Grid>
                     </Grid>
 
@@ -157,9 +131,10 @@ const ColumnPage: React.FC = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
-                                    <TableCell>Name</TableCell>
-                                    <TableCell>University</TableCell>
+                                    <TableCell>Title</TableCell>
+                                    <TableCell>Description</TableCell>
                                     <TableCell>Status</TableCell>
+                                    <TableCell>Created Date</TableCell>
                                     <TableCell>Action</TableCell>
                                 </TableRow>
                             </TableHead>
@@ -167,9 +142,10 @@ const ColumnPage: React.FC = () => {
                                 {data.map((row) => (
                                     <TableRow key={row.id}>
                                         <TableCell>{row.id}</TableCell>
-                                        <TableCell>{row.name}</TableCell>
-                                        <TableCell>{row.university}</TableCell>
+                                        <TableCell>{row.title}</TableCell>
+                                        <TableCell>{row.description}</TableCell>
                                         <TableCell style={{ color: getStatusColor(row.status) }}>{row.status}</TableCell>
+                                        <TableCell>{row.createdDate.toLocaleString()}</TableCell>
                                         <TableCell>
                                             <Button variant="contained" color="secondary" onClick={() => handleDeleteClick(row.id)}>
                                                 Delete
@@ -178,26 +154,6 @@ const ColumnPage: React.FC = () => {
                                     </TableRow>
                                 ))}
                             </TableBody>
-
-                            {/* this part for full raw to chnage the color */}
-                            {/* <TableBody>
-                                {data.map((row) => (
-                                    <TableRow
-                                        key={row.id}
-                                        style={{ backgroundColor: row.status === 'current' ? 'lightgreen' : row.status === 'passed' ? 'lightblue' : 'lightcoral' }}
-                                    >
-                                        <TableCell>{row.id}</TableCell>
-                                        <TableCell>{row.name}</TableCell>
-                                        <TableCell>{row.university}</TableCell>
-                                        <TableCell>{row.status}</TableCell>
-                                        <TableCell>
-                                            <Button variant="contained" color="secondary" onClick={() => handleDeleteClick(row.id)}>
-                                                Delete
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody> */}
                         </Table>
                     </TableContainer>
                 </Paper>
